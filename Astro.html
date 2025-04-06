@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Horizons Society - Explore the Cosmos</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <style>
+        /* Basic styles for Three.js canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place it behind everything */
+        }
+
+        /* Custom scrollbar (optional, for a more refined look) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1e3f; /* Dark track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* Grayer thumb */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* Lighter thumb on hover */
+        }
+
+        /* Subtle fade-in for sections */
+        [x-cloak] { display: none !important; }
+
+        section {
+             animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+             from { opacity: 0; transform: translateY(10px); }
+             to { opacity: 1; transform: translateY(0); }
+        }
+
+         /* Style for the p5 sketch container */
+        #p5-sketch-container {
+            width: 100%; /* Example dimensions */
+            height: 150px;
+            border: 1px dashed #4a5568; /* Placeholder border */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+    <script>
+        // Tailwind Dark Mode Configuration (optional, defaults to system preference)
+        tailwind.config = {
+          darkMode: 'class', // or 'media'
+          theme: {
+            extend: {
+              colors: {
+                'primary': '#2a2f5d',
+                'secondary': '#1a1e3f',
+                'accent': '#61dafb',
+                'light-text': '#e2e8f0',
+                'dark-text': '#a0aec0',
+                'dark-bg': '#0b0c2a',
+                'card-bg': '#11153a',
+              },
+              animation: {
+                 fadeIn: 'fadeIn 0.5s ease-in-out',
+              },
+              keyframes: {
+                 fadeIn: {
+                     '0%': { opacity: '0', transform: 'translateY(10px)' },
+                     '100%': { opacity: '1', transform: 'translateY(0)' },
+                 },
+              }
+            }
+          }
+        }
+      </script>
+</head>
+<body class="bg-dark-bg text-light-text font-sans antialiased" x-data="{ activeTab: 'home' }">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+
+        <aside class="w-full md:w-64 bg-secondary text-light-text p-4 md:p-6 shadow-lg fixed bottom-0 left-0 md:relative md:min-h-screen z-20 border-t md:border-t-0 md:border-r border-primary">
+            <div class="hidden md:block mb-8">
+                <h1 class="text-2xl font-bold text-accent">Stellar Horizons</h1>
+                <p class="text-sm text-dark-text">Explore the Cosmos</p>
+            </div>
+            <nav>
+                <ul class="flex flex-row justify-around md:flex-col md:space-y-2">
+                    <li><button @click="activeTab = 'home'" :class="{ 'bg-primary text-accent': activeTab === 'home', 'hover:bg-primary/50 text-dark-text': activeTab !== 'home' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-home w-5 text-center"></i><span class="hidden md:inline">Home</span>
+                    </button></li>
+                    <li><button @click="activeTab = 'blog'" :class="{ 'bg-primary text-accent': activeTab === 'blog', 'hover:bg-primary/50 text-dark-text': activeTab !== 'blog' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-newspaper w-5 text-center"></i><span class="hidden md:inline">Blog/News</span>
+                    </button></li>
+                    <li><button @click="activeTab = 'events'" :class="{ 'bg-primary text-accent': activeTab === 'events', 'hover:bg-primary/50 text-dark-text': activeTab !== 'events' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-calendar-alt w-5 text-center"></i><span class="hidden md:inline">Events</span>
+                    </button></li>
+                    <li><button @click="activeTab = 'learn'" :class="{ 'bg-primary text-accent': activeTab === 'learn', 'hover:bg-primary/50 text-dark-text': activeTab !== 'learn' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-book-open w-5 text-center"></i><span class="hidden md:inline">Learn</span>
+                    </button></li>
+                     <li><button @click="activeTab = 'gallery'" :class="{ 'bg-primary text-accent': activeTab === 'gallery', 'hover:bg-primary/50 text-dark-text': activeTab !== 'gallery' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-images w-5 text-center"></i><span class="hidden md:inline">Gallery</span>
+                    </button></li>
+                    <li><button @click="activeTab = 'stories'" :class="{ 'bg-primary text-accent': activeTab === 'stories', 'hover:bg-primary/50 text-dark-text': activeTab !== 'stories' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-rocket w-5 text-center"></i><span class="hidden md:inline">Sci-Fi Corner</span>
+                    </button></li>
+                     <li><button @click="activeTab = 'resources'" :class="{ 'bg-primary text-accent': activeTab === 'resources', 'hover:bg-primary/50 text-dark-text': activeTab !== 'resources' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-link w-5 text-center"></i><span class="hidden md:inline">Resources</span>
+                    </button></li>
+                    <li><button @click="activeTab = 'about'" :class="{ 'bg-primary text-accent': activeTab === 'about', 'hover:bg-primary/50 text-dark-text': activeTab !== 'about' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-info-circle w-5 text-center"></i><span class="hidden md:inline">About Us</span>
+                    </button></li>
+                     <li><button @click="activeTab = 'involved'" :class="{ 'bg-primary text-accent': activeTab === 'involved', 'hover:bg-primary/50 text-dark-text': activeTab !== 'involved' }" class="w-full flex items-center space-x-2 p-2 md:p-3 rounded-lg transition duration-200">
+                        <i class="fas fa-hands-helping w-5 text-center"></i><span class="hidden md:inline">Get Involved</span>
+                    </button></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10 pb-20 md:pb-10 overflow-y-auto"> <div class="max-w-7xl mx-auto">
+
+                <section id="home" x-show="activeTab === 'home'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Welcome to Stellar Horizons!</h2>
+                    <div class="prose prose-invert max-w-none mb-8">
+                        <p>Your portal to the wonders of the universe. Explore the latest discoveries, join upcoming events, delve into educational resources, and connect with fellow space enthusiasts.</p>
+                    </div>
+
+                     <div class="mb-8">
+                        <h3 class="text-2xl font-semibold text-light-text mb-3">Interactive Element</h3>
+                        <div id="p5-sketch-container">p5.js Sketch Area - Needs JS Initialization</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-card-bg p-6 rounded-lg shadow-lg hover:shadow-accent/20 transition-shadow duration-300">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-newspaper mr-2"></i>Latest Discovery</h3>
+                            <p class="text-dark-text">Webb Telescope reveals intricate details of a distant nebula. Read our breakdown <a href="#" class="text-accent hover:underline">here</a>.</p>
+                        </div>
+                        <div class="bg-card-bg p-6 rounded-lg shadow-lg hover:shadow-accent/20 transition-shadow duration-300">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-calendar-check mr-2"></i>Next Event</h3>
+                            <p class="text-dark-text">Join our Virtual Star Party next Friday! Details on the <button @click="activeTab = 'events'" class="text-accent hover:underline">Events</button> page.</p>
+                        </div>
+                        <div class="bg-card-bg p-6 rounded-lg shadow-lg hover:shadow-accent/20 transition-shadow duration-300">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-graduation-cap mr-2"></i>Featured Learning</h3>
+                            <p class="text-dark-text">Curious about Dark Matter? Check out our introductory guide in the <button @click="activeTab = 'learn'" class="text-accent hover:underline">Learn</button> section.</p>
+                        </div>
+                         <div class="bg-card-bg p-6 rounded-lg shadow-lg hover:shadow-accent/20 transition-shadow duration-300">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-users mr-2"></i>Community Spotlight</h3>
+                            <p class="text-dark-text">Read an interview with member Jane Doe about her astrophotography journey.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="blog" x-show="activeTab === 'blog'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Blog & News</h2>
+                    <div class="space-y-6">
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">Solar Eclipse Observed Nationwide - A Member Recap</h3>
+                            <p class="text-sm text-dark-text mb-3">Published on April 10, 2025</p>
+                            <p class="text-light-text">Members from across the country shared their experiences and stunning images from the recent solar eclipse. See the highlights...</p>
+                            <a href="#" class="text-accent hover:underline mt-3 inline-block">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">New Exoplanet Discovery: Potential for Liquid Water?</h3>
+                            <p class="text-sm text-dark-text mb-3">Published on April 5, 2025</p>
+                            <p class="text-light-text">NASA's latest mission data suggests a potentially habitable exoplanet orbiting a nearby red dwarf star. We break down the findings...</p>
+                            <a href="#" class="text-accent hover:underline mt-3 inline-block">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                         <article class="bg-card-bg p-6 rounded-lg shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">Understanding the James Webb Space Telescope's Latest Images</h3>
+                             <p class="text-sm text-dark-text mb-3">Published on March 28, 2025</p>
+                            <p class="text-light-text">A deep dive into the technology and significance behind the breathtaking images being released by the JWST.</p>
+                             <a href="#" class="text-accent hover:underline mt-3 inline-block">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                        </div>
+                </section>
+
+                <section id="events" x-show="activeTab === 'events'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Upcoming Events</h2>
+                    <div class="space-y-6">
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col md:flex-row items-start md:items-center gap-4">
+                           <div class="w-full md:w-1/4 text-center md:text-left">
+                                <p class="text-lg font-semibold text-accent">April 15, 2025</p>
+                                <p class="text-sm text-dark-text">8:00 PM - 11:00 PM</p>
+                           </div>
+                           <div class="w-full md:w-3/4">
+                                <h3 class="text-xl font-semibold text-light-text mb-2">Community Star Gazing Night</h3>
+                                <p class="text-light-text mb-3">Join us at the Hilltop Observatory (or join virtually via Zoom link) for a guided tour of the spring constellations, planets, and deep-sky objects. Telescopes provided on-site.</p>
+                                <span class="inline-block bg-primary text-accent text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">In-Person & Virtual</span>
+                                <button class="mt-2 md:mt-0 md:ml-4 bg-accent text-dark-bg px-4 py-1 rounded hover:bg-accent/80 transition duration-200 text-sm font-medium">Register Now</button>
+                           </div>
+                        </article>
+                         <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col md:flex-row items-start md:items-center gap-4">
+                           <div class="w-full md:w-1/4 text-center md:text-left">
+                                <p class="text-lg font-semibold text-accent">May 10, 2025</p>
+                                <p class="text-sm text-dark-text">9:00 AM - 4:00 PM</p>
+                           </div>
+                           <div class="w-full md:w-3/4">
+                                <h3 class="text-xl font-semibold text-light-text mb-2">AstroTalk Conference 2025</h3>
+                                <p class="text-light-text mb-3">Our annual conference featuring lectures by leading astronomers and astrophysicists. Topics include cosmology, exoplanet research, and the future of space exploration. Open to all.</p>
+                                <span class="inline-block bg-primary text-accent text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Conference</span>
+                                <button class="mt-2 md:mt-0 md:ml-4 bg-accent text-dark-bg px-4 py-1 rounded hover:bg-accent/80 transition duration-200 text-sm font-medium">Learn More & Tickets</button>
+                            </div>
+                        </article>
+                        <div class="text-center mt-8">
+                             <a href="#" class="text-accent hover:underline">View Past Events</a>
+                         </div>
+                    </div>
+                </section>
+
+                <section id="learn" x-show="activeTab === 'learn'" x-cloak>
+                     <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Educational Resources</h2>
+                     <div class="prose prose-invert max-w-none mb-8">
+                        <p>Expand your cosmic knowledge with our curated guides, articles, and tutorials. Suitable for beginners and seasoned enthusiasts alike.</p>
+                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col h-full">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">Understanding Black Holes</h3>
+                             <span class="text-xs text-accent mb-2 bg-primary px-2 py-0.5 rounded-full self-start">Astrophysics</span>
+                            <p class="text-dark-text flex-grow">Dive into the physics of black holes: what they are, how they form, event horizons, and the mysteries they still hold.</p>
+                            <a href="#" class="text-accent hover:underline mt-4 self-start">Read Guide <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col h-full">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">Beginner's Guide to Stargazing</h3>
+                            <span class="text-xs text-accent mb-2 bg-primary px-2 py-0.5 rounded-full self-start">Observational Astronomy</span>
+                            <p class="text-dark-text flex-grow">Your starting point for exploring the night sky. Learn about constellations, finding planets, essential tools (like binoculars!), and tips for your first observing session.</p>
+                             <a href="#" class="text-accent hover:underline mt-4 self-start">Start Learning <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col h-full">
+                             <h3 class="text-xl font-semibold text-light-text mb-2">Types of Telescopes Explained</h3>
+                             <span class="text-xs text-accent mb-2 bg-primary px-2 py-0.5 rounded-full self-start">Equipment</span>
+                             <p class="text-dark-text flex-grow">Refractors, reflectors, catadioptric... Understand the differences, pros, and cons of various telescope designs to help you choose the right one.</p>
+                             <a href="#" class="text-accent hover:underline mt-4 self-start">Explore Designs <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                         <article class="bg-card-bg p-6 rounded-lg shadow-lg flex flex-col h-full">
+                             <h3 class="text-xl font-semibold text-light-text mb-2">Introduction to Astrophotography</h3>
+                            <span class="text-xs text-accent mb-2 bg-primary px-2 py-0.5 rounded-full self-start">Techniques</span>
+                             <p class="text-dark-text flex-grow">Capture the beauty of the cosmos. Learn the basics of camera settings, equipment, and techniques for photographing the Moon, planets, and nebulae.</p>
+                              <a href="#" class="text-accent hover:underline mt-4 self-start">Get Started <i class="fas fa-arrow-right ml-1"></i></a>
+                        </article>
+                        </div>
+                </section>
+
+                <section id="gallery" x-show="activeTab === 'gallery'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Member Gallery</h2>
+                     <div class="prose prose-invert max-w-none mb-8">
+                        <p>Explore stunning astrophotography and space-inspired artwork submitted by our talented members. <a href="#" class="text-accent hover:underline">Submit your work!</a></p>
+                     </div>
+                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 1</div>
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 2</div>
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 3</div>
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 4</div>
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 5</div>
+                        <div class="bg-card-bg aspect-square rounded-lg flex items-center justify-center text-dark-text text-sm font-medium shadow-lg hover:shadow-accent/20 transition-shadow duration-300">Image Placeholder 6</div>
+                        </div>
+                </section>
+
+                <section id="stories" x-show="activeTab === 'stories'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Sci-Fi Corner</h2>
+                     <div class="prose prose-invert max-w-none mb-8">
+                        <p>Fuel your imagination with original science fiction stories and thought-provoking concepts from our community and beyond.</p>
+                     </div>
+                    <div class="space-y-6">
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">Beyond the Andromeda Gate</h3>
+                            <p class="text-sm text-dark-text mb-3">Category: Short Story | Author: Member Name</p>
+                            <p class="text-light-text">A newly activated interstellar gateway promises exploration, but the first probe reveals a signal that defies known physics, hinting at something ancient and vast waiting on the other side...</p>
+                             <a href="#" class="text-accent hover:underline mt-3 inline-block">Read Full Story</a>
+                        </article>
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-light-text mb-2">The Last Moonwalker's Log</h3>
+                             <p class="text-sm text-dark-text mb-3">Category: Serial | Author: A. Writer</p>
+                            <p class="text-light-text">Decades after Earth falls silent, the lone inhabitant of a lunar outpost detects a faint, repeating signal originating from a previously unexplored crater. Is it a message, a warning, or something else entirely?</p>
+                             <a href="#" class="text-accent hover:underline mt-3 inline-block">Start Reading</a>
+                        </article>
+                         <article class="bg-card-bg p-6 rounded-lg shadow-lg">
+                             <h3 class="text-xl font-semibold text-light-text mb-2">Concept: Dyson Swarms vs. Stellar Engines</h3>
+                             <p class="text-sm text-dark-text mb-3">Category: Thought Experiment</p>
+                             <p class="text-light-text">Exploring the feasibility and implications of two theoretical megastructures for harnessing stellar energy. Which approach holds more promise for a Type II civilization?</p>
+                             <a href="#" class="text-accent hover:underline mt-3 inline-block">Discuss Concept</a>
+                        </article>
+                        </div>
+                </section>
+
+                 <section id="resources" x-show="activeTab === 'resources'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Helpful Resources</h2>
+                     <div class="prose prose-invert max-w-none mb-8">
+                        <p>A curated list of external websites, tools, and software useful for amateur astronomers and space enthusiasts.</p>
+                     </div>
+                    <ul class="space-y-4 list-none p-0">
+                        <li class="bg-card-bg p-4 rounded-lg shadow-sm flex items-center gap-4">
+                            <i class="fas fa-globe text-accent text-xl w-6 text-center"></i>
+                            <div>
+                                <h3 class="font-semibold text-light-text">NASA Official Website</h3>
+                                <a href="https://www.nasa.gov" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline">nasa.gov <i class="fas fa-external-link-alt text-xs ml-1"></i></a>
+                                <p class="text-sm text-dark-text mt-1">Latest news, mission updates, images, and educational content from NASA.</p>
+                            </div>
+                        </li>
+                         <li class="bg-card-bg p-4 rounded-lg shadow-sm flex items-center gap-4">
+                             <i class="fas fa-satellite-dish text-accent text-xl w-6 text-center"></i>
+                            <div>
+                                <h3 class="font-semibold text-light-text">Heavens-Above</h3>
+                                 <a href="https://www.heavens-above.com" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline">heavens-above.com <i class="fas fa-external-link-alt text-xs ml-1"></i></a>
+                                 <p class="text-sm text-dark-text mt-1">Predict satellite passes (ISS, Starlink), Iridium flares, and view interactive sky charts for your location.</p>
+                             </div>
+                        </li>
+                        <li class="bg-card-bg p-4 rounded-lg shadow-sm flex items-center gap-4">
+                             <i class="fas fa-star text-accent text-xl w-6 text-center"></i>
+                             <div>
+                                <h3 class="font-semibold text-light-text">Stellarium Web Online Star Map</h3>
+                                 <a href="https://stellarium-web.org/" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline">stellarium-web.org <i class="fas fa-external-link-alt text-xs ml-1"></i></a>
+                                <p class="text-sm text-dark-text mt-1">A realistic online planetarium in your browser. Excellent for identifying stars, planets, and constellations.</p>
+                            </div>
+                        </li>
+                         <li class="bg-card-bg p-4 rounded-lg shadow-sm flex items-center gap-4">
+                            <i class="fas fa-book text-accent text-xl w-6 text-center"></i>
+                            <div>
+                                <h3 class="font-semibold text-light-text">Sky & Telescope Magazine</h3>
+                                <a href="https://skyandtelescope.org/" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline">skyandtelescope.org <i class="fas fa-external-link-alt text-xs ml-1"></i></a>
+                                <p class="text-sm text-dark-text mt-1">Reputable source for astronomy news, observing guides, and equipment reviews.</p>
+                            </div>
+                        </li>
+                        </ul>
+                </section>
+
+                <section id="about" x-show="activeTab === 'about'" x-cloak>
+                    <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">About Stellar Horizons Society</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <article class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-light-text mb-3">Our Mission</h3>
+                            <div class="prose prose-invert max-w-none">
+                                <p>Founded in 2010, the Stellar Horizons Society is dedicated to fostering a community of space lovers, amateur astronomers, and sci-fi dreamers. We aim to inspire people of all ages to look up, explore the universe, and appreciate our place within it through education, observation, and imagination.</p>
+                            </div>
+                        </article>
+                         <article class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-light-text mb-3">Meet the Team (Example)</h3>
+                             <ul class="list-none p-0 space-y-2 text-dark-text">
+                                <li><strong>Dr. Evelyn Reed:</strong> President & Lead Astronomer</li>
+                                <li><strong>Ben Carter:</strong> Head of Outreach & Events</li>
+                                <li><strong>Maria Garcia:</strong> Community Manager & Editor</li>
+                                 <li><strong>Kenji Tanaka:</strong> Technical Lead</li>
+                             </ul>
+                         </article>
+                    </div>
+                     <article class="bg-card-bg p-6 rounded-lg shadow-lg mt-8">
+                            <h3 class="text-xl font-semibold text-light-text mb-3">Contact Us</h3>
+                             <div class="flex flex-col md:flex-row gap-6">
+                                <div class="flex-1">
+                                    <p class="text-light-text mb-2">Have questions or want to get in touch?</p>
+                                    <p class="text-dark-text mb-1"><i class="fas fa-envelope mr-2 text-accent w-4"></i> Email: <a href="mailto:info@stellarhorizons.org" class="text-accent hover:underline">info@stellarhorizons.org</a></p>
+                                    <p class="text-dark-text"><i class="fas fa-phone mr-2 text-accent w-4"></i> Phone: +123 456 7890 (Mon-Fri, 9am-5pm)</p>
+                                     <div class="mt-4 space-x-3">
+                                         <a href="#" class="text-dark-text hover:text-accent transition duration-200" aria-label="Facebook"><i class="fab fa-facebook-f fa-lg"></i></a>
+                                         <a href="#" class="text-dark-text hover:text-accent transition duration-200" aria-label="Twitter"><i class="fab fa-twitter fa-lg"></i></a>
+                                          <a href="#" class="text-dark-text hover:text-accent transition duration-200" aria-label="Instagram"><i class="fab fa-instagram fa-lg"></i></a>
+                                     </div>
+                                </div>
+                                <div class="flex-1">
+                                     <form>
+                                        <div class="mb-3">
+                                            <label for="contact-name" class="block text-sm font-medium text-dark-text mb-1">Name</label>
+                                            <input type="text" id="contact-name" class="w-full bg-primary border border-secondary rounded px-3 py-2 text-light-text focus:outline-none focus:border-accent" placeholder="Your Name">
+                                        </div>
+                                         <div class="mb-3">
+                                             <label for="contact-email" class="block text-sm font-medium text-dark-text mb-1">Email</label>
+                                             <input type="email" id="contact-email" class="w-full bg-primary border border-secondary rounded px-3 py-2 text-light-text focus:outline-none focus:border-accent" placeholder="your.email@example.com">
+                                         </div>
+                                         <div class="mb-3">
+                                             <label for="contact-message" class="block text-sm font-medium text-dark-text mb-1">Message</label>
+                                             <textarea id="contact-message" rows="3" class="w-full bg-primary border border-secondary rounded px-3 py-2 text-light-text focus:outline-none focus:border-accent" placeholder="Your message..."></textarea>
+                                         </div>
+                                         <button type="submit" class="bg-accent text-dark-bg px-5 py-2 rounded hover:bg-accent/80 transition duration-200 font-medium">Send Message</button>
+                                     </form>
+                                </div>
+                             </div>
+                        </article>
+                </section>
+
+                <section id="involved" x-show="activeTab === 'involved'" x-cloak>
+                     <h2 class="text-3xl font-bold text-accent mb-6 border-b border-primary pb-2">Get Involved</h2>
+                     <div class="prose prose-invert max-w-none mb-8">
+                        <p>Become a part of the Stellar Horizons community! There are many ways to contribute and connect.</p>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div class="bg-card-bg p-6 rounded-lg shadow-lg">
+                             <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-user-plus mr-2"></i>Become a Member</h3>
+                            <p class="text-dark-text mb-4">Gain access to exclusive content, member-only events, discussion forums, and support our mission. Choose a membership level that suits you.</p>
+                             <button class="bg-accent text-dark-bg px-4 py-2 rounded hover:bg-accent/80 transition duration-200 font-medium">View Membership Options</button>
+                         </div>
+                        <div class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-edit mr-2"></i>Contribute Content</h3>
+                            <p class="text-dark-text mb-4">Share your astrophotography in our gallery, write a blog post, submit a sci-fi story, or suggest an educational topic. We welcome community contributions!</p>
+                             <button class="bg-primary text-accent border border-accent px-4 py-2 rounded hover:bg-primary/70 transition duration-200 font-medium">Submission Guidelines</button>
+                         </div>
+                         <div class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-hand-holding-heart mr-2"></i>Volunteer</h3>
+                            <p class="text-dark-text mb-4">Help us organize events, manage online communities, or assist with educational outreach. Your time and skills are valuable!</p>
+                            <button @click="activeTab = 'about'" class="bg-primary text-accent border border-accent px-4 py-2 rounded hover:bg-primary/70 transition duration-200 font-medium">Contact Us to Volunteer</button>
+                        </div>
+                        <div class="bg-card-bg p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold text-accent mb-3"><i class="fas fa-donate mr-2"></i>Make a Donation</h3>
+                            <p class="text-dark-text mb-4">Support our non-profit activities, equipment upgrades, and outreach programs with a one-time or recurring donation.</p>
+                            <button class="bg-accent text-dark-bg px-4 py-2 rounded hover:bg-accent/80 transition duration-200 font-medium">Donate Now</button>
+                         </div>
+                    </div>
+                </section>
+
+            </div> <footer class="mt-12 pt-6 border-t border-primary text-center text-dark-text text-sm">
+                &copy; 2025 Stellar Horizons Society. All rights reserved.
+                <div class="mt-2 space-x-3">
+                     <a href="#" class="hover:text-accent transition duration-200">Privacy Policy</a>
+                     <span>|</span>
+                     <a href="#" class="hover:text-accent transition duration-200">Terms of Service</a>
+                </div>
+            </footer>
+
+        </main>
+
+    </div> <script>
+        // --- Three.js Starfield ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true }); // Use existing canvas
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0); // Transparent background
+
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.7,
+            sizeAttenuation: true,
+            transparent: true,
+            opacity: 0.8
+         });
+
+        const starVertices = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            // Ensure stars are reasonably far away
+            if (Math.sqrt(x*x + y*y + z*z) > 100) {
+                 starVertices.push(x, y, z);
+            }
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        camera.position.z = 1; // Move camera slightly into the scene
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Subtle rotation
+            stars.rotation.x += 0.0001;
+            stars.rotation.y += 0.0002;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- p5.js Sketch Example (Placeholder Initialization) ---
+        // This needs to be fleshed out with an actual sketch.
+        // Using instance mode to avoid global conflicts.
+        const sketch = ( p ) => {
+            p.setup = () => {
+                const container = document.getElementById('p5-sketch-container');
+                let cnv = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                cnv.parent('p5-sketch-container'); // Attach canvas to the container
+                 p.background(26, 30, 63); // Match card background slightly darker
+                p.noLoop(); // Draw once for placeholder text
+                 p.fill(113, 128, 150); // dark-text color
+                 p.textAlign(p.CENTER, p.CENTER);
+                 p.text('p5.js Sketch Area Initialized\n(Add visual logic here)', p.width/2, p.height/2);
+
+            };
+
+            p.draw = () => {
+                // Add your generative art / animation logic here
+                // Example: Draw random pulsing circles
+                // p.background(26, 30, 63, 10); // Slightly transparent background for trails
+                // p.fill(97, 218, 251, p.random(50, 150)); // accent color with random alpha
+                // p.noStroke();
+                // let x = p.random(p.width);
+                // let y = p.random(p.height);
+                // let size = p.sin(p.frameCount * 0.05 + x * 0.1) * 10 + 15; // Pulsing effect
+                // p.ellipse(x, y, size, size);
+            };
+
+             p.windowResized = () => {
+                const container = document.getElementById('p5-sketch-container');
+                 p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+                  p.background(26, 30, 63); // Redraw placeholder on resize
+                  p.fill(113, 128, 150);
+                  p.textAlign(p.CENTER, p.CENTER);
+                  p.text('p5.js Sketch Area Initialized\n(Add visual logic here)', p.width/2, p.height/2);
+
+             };
+        };
+
+        // Wait for the DOM to be ready before initializing p5
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let myp5 = new p5(sketch);
+        });
+
+    </script>
+
+</body>
+</html>
